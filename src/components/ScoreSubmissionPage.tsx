@@ -8,7 +8,7 @@ type ScoreSubmissionPageProps = {
     username: string,
     gameId: GameModeId,
     score: number
-  ) => boolean;
+  ) => Promise<boolean>;
   onBack: () => void;
 };
 
@@ -49,7 +49,7 @@ export function ScoreSubmissionPage({
       .sort((a, b) => b.gameScore - a.gameScore);
   }, [allCharacters, viewGame]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setStatus({ message: '', type: null });
 
@@ -77,17 +77,27 @@ export function ScoreSubmissionPage({
       return;
     }
 
-    const success = onSubmitScore(username, selectedGame, numericScore);
-    if (!success) {
+    setStatus({ message: '점수를 등록하는 중입니다…', type: null });
+
+    try {
+      const success = await onSubmitScore(username, selectedGame, numericScore);
+      if (!success) {
+        setStatus({
+          message: '점수 등록에 실패했습니다. 닉네임을 확인해주세요.',
+          type: 'error'
+        });
+        return;
+      }
+
+      setStatus({ message: '점수가 등록되었습니다!', type: 'success' });
+      setScore('');
+    } catch (error) {
+      console.error('점수 등록 실패:', error);
       setStatus({
-        message: '점수 등록에 실패했습니다. 닉네임을 확인해주세요.',
+        message: '점수 등록 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
         type: 'error'
       });
-      return;
     }
-
-    setStatus({ message: '점수가 등록되었습니다!', type: 'success' });
-    setScore('');
   };
 
   useEffect(() => {
@@ -192,7 +202,7 @@ export function ScoreSubmissionPage({
                     {username && (
                       <p
                         className={`mt-2 text-xs ${
-                          usernameExists ? 'text-emerald-300' : 'text-rose-300'
+                          usernameExists ? 'text-emerald-600' : 'text-rose-500'
                         }`}
                       >
                         {usernameExists

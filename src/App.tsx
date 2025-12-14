@@ -9,6 +9,12 @@ import { MainPage } from "./components/MainPage";
 import { CreateCharacter } from "./components/CreateCharacter";
 import { AccountPage } from "./components/AccountPage";
 import { ScoreSubmissionPage } from "./components/ScoreSubmissionPage";
+import {
+  ApiPlayerPayload,
+  ApiPlayerRecord,
+  fetchPlayers,
+  upsertPlayer,
+} from "./lib/api";
 
 export const GAME_MODES = [
   { id: "dance", label: "game1" },
@@ -41,31 +47,26 @@ export type User = {
 
 type Page = "login" | "home" | "create" | "account" | "score";
 
+const pageToPath: Record<Page, string> = {
+  login: "/login",
+  home: "/home",
+  create: "/create",
+  account: "/account",
+  score: "/score",
+};
+
+type GameColumn = "game1" | "game2" | "game3" | "game4";
+
+const GAME_MODE_COLUMN_MAP: Record<GameModeId, GameColumn> = {
+  dance: "game1",
+  rhythm: "game2",
+  puzzle: "game3",
+  raid: "game4",
+};
+
 const calculateTotalScore = (
   scores: Record<GameModeId, number>,
 ) => Object.values(scores).reduce((sum, value) => sum + value, 0);
-
-const FALLBACK_AVATARS = [
-  "🐯",
-  "🐉",
-  "🐰",
-  "🦊",
-  "🐼",
-  "🦁",
-  "🐸",
-  "🐻",
-];
-
-const FALLBACK_COLORS = [
-  "#FF6B35",
-  "#4ECDC4",
-  "#FFD93D",
-  "#A78BFA",
-  "#FB7185",
-  "#34D399",
-  "#60A5FA",
-  "#F472B6",
-];
 
 const createEmptyGameScores = (): Record<GameModeId, number> => {
   return GAME_MODES.reduce(
@@ -75,169 +76,6 @@ const createEmptyGameScores = (): Record<GameModeId, number> => {
     },
     {} as Record<GameModeId, number>,
   );
-};
-
-const createPlaceholderCharacter = (
-  username: string,
-  displayName?: string,
-): Character => {
-  const appearance: CharacterAppearance = {
-    name: displayName?.trim() || `${username}의 캐릭터`,
-    avatar:
-      FALLBACK_AVATARS[
-        Math.floor(Math.random() * FALLBACK_AVATARS.length)
-      ],
-    color:
-      FALLBACK_COLORS[
-        Math.floor(Math.random() * FALLBACK_COLORS.length)
-      ],
-    accessories: [],
-  };
-
-  const scores = createEmptyGameScores();
-
-  return {
-    ...appearance,
-    id: Date.now().toString(),
-    createdAt: Date.now(),
-    gameScores: scores,
-    totalScore: calculateTotalScore(scores),
-  };
-};
-
-const generateRandomGameScores = (): Record<
-  GameModeId,
-  number
-> => {
-  return GAME_MODES.reduce(
-    (acc, mode) => {
-      acc[mode.id] =
-        Math.floor(Math.random() * 2000) + 4000;
-      return acc;
-    },
-    {} as Record<GameModeId, number>,
-  );
-};
-
-const distributeExistingScore = (
-  total: number,
-): Record<GameModeId, number> => {
-  if (!Number.isFinite(total) || total <= 0) {
-    return generateRandomGameScores();
-  }
-
-  const base = Math.floor(total / GAME_MODES.length);
-  let remainder = total - base * GAME_MODES.length;
-
-  const scores: Record<GameModeId, number> = {} as Record<
-    GameModeId,
-    number
-  >;
-
-  GAME_MODES.forEach((mode) => {
-    const variation = Math.floor(Math.random() * 600) - 300;
-    let value = base + variation;
-    if (remainder > 0) {
-      value += 1;
-      remainder -= 1;
-    }
-    scores[mode.id] = Math.max(0, value);
-  });
-
-  const currentTotal = calculateTotalScore(scores);
-  const diff = total - currentTotal;
-  if (diff !== 0) {
-    const firstMode = GAME_MODES[0].id;
-    scores[firstMode] = Math.max(0, scores[firstMode] + diff);
-  }
-
-  return scores;
-};
-
-const normalizeCharacter = (raw: any): Character => {
-  const fallbackScores = generateRandomGameScores();
-
-  const legacyScores =
-    typeof raw?.score === "number"
-      ? distributeExistingScore(raw.score)
-      : null;
-
-  const normalizedGameScores = GAME_MODES.reduce(
-    (acc, mode) => {
-      const existingValue =
-        raw?.gameScores?.[mode.id];
-      if (typeof existingValue === "number") {
-        acc[mode.id] = existingValue;
-      } else if (legacyScores) {
-        acc[mode.id] = legacyScores[mode.id];
-      } else {
-        acc[mode.id] = fallbackScores[mode.id];
-      }
-      return acc;
-    },
-    {} as Record<GameModeId, number>,
-  );
-
-  const totalScore =
-    typeof raw?.totalScore === "number"
-      ? raw.totalScore
-      : calculateTotalScore(normalizedGameScores);
-
-  return {
-    id: String(raw?.id ?? Date.now().toString()),
-    name: raw?.name ?? "플레이어",
-    avatar: raw?.avatar ?? "🎮",
-    color: raw?.color ?? "#FF6B35",
-    accessories: Array.isArray(raw?.accessories)
-      ? raw.accessories
-      : [],
-    createdAt:
-      typeof raw?.createdAt === "number"
-        ? raw.createdAt
-        : Date.now(),
-    gameScores: normalizedGameScores,
-    totalScore,
-  };
-};
-
-const normalizeUsersData = (
-  raw: any,
-): Record<string, User> => {
-  if (!raw || typeof raw !== "object") {
-    return {};
-  }
-
-  return Object.entries(raw).reduce(
-    (acc, [username, userData]) => {
-      if (!userData || typeof userData !== "object") {
-        return acc;
-      }
-
-      const normalizedUser: User = {
-        username:
-          (userData as User).username ?? username,
-        password: (userData as User).password ?? "",
-      };
-
-      if ((userData as User).character) {
-        normalizedUser.character = normalizeCharacter(
-          (userData as User).character,
-        );
-      }
-
-      acc[username] = normalizedUser;
-      return acc;
-    },
-    {} as Record<string, User>,
-  );
-};
-
-const pageToPath: Record<Page, string> = {
-  login: "/login",
-  home: "/home",
-  create: "/create",
-  account: "/account",
-  score: "/score",
 };
 
 const normalizePath = (path: string) => {
@@ -271,15 +109,113 @@ const getInitialPage = (): Page => {
   return pathToPage(window.location.pathname);
 };
 
+const buildGameScoresFromRecord = (
+  record: ApiPlayerRecord,
+): Record<GameModeId, number> => {
+  return GAME_MODES.reduce(
+    (acc, mode) => {
+      const column = GAME_MODE_COLUMN_MAP[mode.id];
+      const value = record[column] ?? 0;
+      acc[mode.id] = typeof value === "number" ? value : 0;
+      return acc;
+    },
+    {} as Record<GameModeId, number>,
+  );
+};
+
+const convertApiPlayerToUser = (player: ApiPlayerRecord): User => {
+  const gameScores = buildGameScoresFromRecord(player);
+  const totalScore =
+    typeof player.totalScore === "number"
+      ? player.totalScore
+      : calculateTotalScore(gameScores);
+
+  const character: Character = {
+    id: player.id ? String(player.id) : player.username,
+    name: player.name ?? player.username,
+    avatar: player.avatar ?? "🎮",
+    color: player.color ?? "#FF6B35",
+    accessories: Array.isArray(player.accessories)
+      ? player.accessories
+      : [],
+    createdAt:
+      typeof player.createdAt === "number"
+        ? player.createdAt
+        : Date.now(),
+    gameScores,
+    totalScore,
+  };
+
+  return {
+    username: player.username,
+    password: player.password ?? "",
+    character,
+  };
+};
+
+const mapPlayersToUsers = (
+  players: ApiPlayerRecord[],
+): Record<string, User> => {
+  return players.reduce((acc, player) => {
+    const normalized = convertApiPlayerToUser(player);
+    acc[normalized.username] = normalized;
+    return acc;
+  }, {} as Record<string, User>);
+};
+
+const userToApiPayload = (user: User): ApiPlayerPayload | null => {
+  if (!user.character) {
+    return null;
+  }
+
+  const scoresByColumn: Record<GameColumn, number> = {
+    game1: user.character.gameScores.dance ?? 0,
+    game2: user.character.gameScores.rhythm ?? 0,
+    game3: user.character.gameScores.puzzle ?? 0,
+    game4: user.character.gameScores.raid ?? 0,
+  };
+
+  return {
+    username: user.username,
+    password: user.password,
+    name: user.character.name,
+    avatar: user.character.avatar,
+    color: user.character.color,
+    accessories: user.character.accessories,
+    createdAt: user.character.createdAt,
+    ...scoresByColumn,
+  };
+};
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [currentUser, setCurrentUser] = useState<string | null>(
     null,
   );
   const [users, setUsers] = useState<Record<string, User>>({});
-  const [isUsersLoaded, setIsUsersLoaded] = useState(false);
+  const [hasLoadedUsers, setHasLoadedUsers] = useState(false);
   const hasNormalizedPath = useRef(false);
   const hasRestoredSession = useRef(false);
+
+  const findUserByUsername = useCallback(
+    (username: string) => {
+      const trimmed = username.trim();
+      if (!trimmed) return null;
+
+      if (users[trimmed]) {
+        return { username: trimmed, user: users[trimmed]! };
+      }
+
+      const lower = trimmed.toLowerCase();
+      const entry = Object.entries(users).find(
+        ([key]) => key.toLowerCase() === lower,
+      );
+      if (!entry) return null;
+      return { username: entry[0], user: entry[1] };
+    },
+    [users],
+  );
+
 
   const updateHistoryPath = useCallback(
     (page: Page, method: "pushState" | "replaceState" = "pushState") => {
@@ -302,11 +238,32 @@ export default function App() {
     [updateHistoryPath],
   );
 
+  const loadUsers = useCallback(async () => {
+    try {
+      const players = await fetchPlayers();
+      setUsers(mapPlayersToUsers(players));
+    } catch (error) {
+      console.error("플레이어 데이터를 불러오지 못했습니다.", error);
+    } finally {
+      setHasLoadedUsers(true);
+    }
+  }, []);
+
+  const persistUser = useCallback(async (user: User) => {
+    const payload = userToApiPayload(user);
+    if (!payload) return;
+    await upsertPlayer(payload);
+  }, []);
+
   const resolvePageAccess = useCallback(
     (page: Page): Page => {
+      if (!hasLoadedUsers) {
+        return page;
+      }
+
       if (page === "score") return "score";
       if (!currentUser) {
-        return page === "login" ? "login" : "login";
+        return "login";
       }
 
       const currentCharacter = users[currentUser]?.character;
@@ -325,8 +282,12 @@ export default function App() {
 
       return page;
     },
-    [currentUser, users],
+    [currentUser, users, hasLoadedUsers],
   );
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   useEffect(() => {
     if (hasNormalizedPath.current) return;
@@ -354,89 +315,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Load users from localStorage
-    const savedUsers = localStorage.getItem("festivalUsers");
-    if (savedUsers) {
-      const parsed = JSON.parse(savedUsers);
-      const normalized = normalizeUsersData(parsed);
-      setUsers(normalized);
-      localStorage.setItem(
-        "festivalUsers",
-        JSON.stringify(normalized),
-      );
-    } else {
-      // Initialize with some mock data
-      const mockUsers: Record<string, User> = {
-        "1": {
-          username: "1",
-          password: "1",
-          character: {
-            id: "1",
-            name: "불타는 호랑이",
-            avatar: "🐯",
-            color: "#FF6B35",
-            accessories: ["왕관", "목걸이"],
-            createdAt: Date.now() - 86400000,
-            gameScores: {
-              dance: 4200,
-              rhythm: 3600,
-              puzzle: 3100,
-              raid: 3900,
-            },
-            totalScore: 14800,
-          },
-        },
-        mystic: {
-          username: "mystic",
-          password: "1",
-          character: {
-            id: "2",
-            name: "신비한 용",
-            avatar: "🐉",
-            color: "#4ECDC4",
-            accessories: ["마법지팡이"],
-            createdAt: Date.now() - 172800000,
-            gameScores: {
-              dance: 3600,
-              rhythm: 3800,
-              puzzle: 3300,
-              raid: 4100,
-            },
-            totalScore: 14800,
-          },
-        },
-        bunny: {
-          username: "bunny",
-          password: "1",
-          character: {
-            id: "3",
-            name: "귀여운 토끼",
-            avatar: "🐰",
-            color: "#FFD93D",
-            accessories: ["모자"],
-            createdAt: Date.now() - 259200000,
-            gameScores: {
-              dance: 3100,
-              rhythm: 2900,
-              puzzle: 3500,
-              raid: 3300,
-            },
-            totalScore: 12800,
-          },
-        },
-      };
-      const normalizedMock = normalizeUsersData(mockUsers);
-      setUsers(normalizedMock);
-      localStorage.setItem(
-        "festivalUsers",
-        JSON.stringify(normalizedMock),
-      );
-    }
-    setIsUsersLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isUsersLoaded || hasRestoredSession.current) return;
+    if (hasRestoredSession.current) return;
+    if (!hasLoadedUsers) return;
     if (typeof window === "undefined") return;
 
     const storedCurrentUser = localStorage.getItem(
@@ -451,48 +331,51 @@ export default function App() {
     }
 
     hasRestoredSession.current = true;
-  }, [isUsersLoaded, users]);
-
-  const saveUsers = (updatedUsers: Record<string, User>) => {
-    setUsers(updatedUsers);
-    localStorage.setItem(
-      "festivalUsers",
-      JSON.stringify(updatedUsers),
-    );
-  };
+  }, [hasLoadedUsers, users]);
 
   const handleLogin = (
     username: string,
     password: string,
   ): boolean => {
-    const user = users[username];
-    if (user && user.password === password) {
-      setCurrentUser(username);
-      localStorage.setItem("festivalCurrentUser", username);
-      if (user.character) {
-        navigate("home");
-      } else {
-        navigate("create");
-      }
-      return true;
+    if (!hasLoadedUsers) return false;
+    const found = findUserByUsername(username);
+    if (!found) return false;
+    const { username: resolvedUsername, user } = found;
+
+    const hasStoredPassword =
+      typeof user.password === "string" && user.password.length > 0;
+    if (hasStoredPassword && user.password !== password) {
+      return false;
     }
-    return false;
+
+    setCurrentUser(resolvedUsername);
+    localStorage.setItem("festivalCurrentUser", resolvedUsername);
+    if (user.character) {
+      navigate("home");
+    } else {
+      navigate("create");
+    }
+    return true;
   };
 
   const handleSignup = (
     username: string,
     password: string,
   ): boolean => {
-    if (users[username]) {
-      return false; // User already exists
+    const existing = findUserByUsername(username);
+    if (existing) {
+      return false;
     }
-    const newUsers = {
-      ...users,
-      [username]: { username, password },
-    };
-    saveUsers(newUsers);
-    setCurrentUser(username);
-    localStorage.setItem("festivalCurrentUser", username);
+    const normalizedUsername = username.trim();
+    setUsers((prev) => ({
+      ...prev,
+      [normalizedUsername]: {
+        username: normalizedUsername,
+        password,
+      },
+    }));
+    setCurrentUser(normalizedUsername);
+    localStorage.setItem("festivalCurrentUser", normalizedUsername);
     navigate("create");
     return true;
   };
@@ -502,23 +385,32 @@ export default function App() {
   ) => {
     if (!currentUser) return;
 
-    const gameScores = createEmptyGameScores();
     const newCharacter: Character = {
       ...character,
       id: Date.now().toString(),
-      gameScores,
-      totalScore: calculateTotalScore(gameScores),
+      gameScores: createEmptyGameScores(),
+      totalScore: 0,
       createdAt: Date.now(),
     };
+    newCharacter.totalScore = calculateTotalScore(
+      newCharacter.gameScores,
+    );
 
-    const updatedUsers = {
-      ...users,
-      [currentUser]: {
-        ...users[currentUser],
-        character: newCharacter,
-      },
+    const existingUser = users[currentUser];
+    const updatedUser: User = {
+      ...existingUser,
+      character: newCharacter,
     };
-    saveUsers(updatedUsers);
+
+    setUsers((prev) => ({
+      ...prev,
+      [currentUser]: updatedUser,
+    }));
+
+    persistUser(updatedUser).catch((error) => {
+      console.error("캐릭터 생성 동기화 실패:", error);
+    });
+
     navigate("home");
   };
 
@@ -532,27 +424,31 @@ export default function App() {
       ...character,
     };
 
-    const updatedUsers = {
-      ...users,
-      [currentUser]: {
-        ...users[currentUser],
-        character: updatedCharacter,
-      },
+    const updatedUser: User = {
+      ...users[currentUser],
+      character: updatedCharacter,
     };
-    saveUsers(updatedUsers);
+
+    setUsers((prev) => ({
+      ...prev,
+      [currentUser]: updatedUser,
+    }));
+
+    persistUser(updatedUser).catch((error) => {
+      console.error("캐릭터 업데이트 실패:", error);
+    });
   };
 
-  const handleSubmitScore = (
+  const handleSubmitScore = async (
     username: string,
     gameId: GameModeId,
     score: number,
-  ): boolean => {
-    const trimmedUsername = username.trim();
-    if (!trimmedUsername) return false;
+  ): Promise<boolean> => {
     if (!Number.isFinite(score) || score < 0) return false;
-
-    const existingUser = users[trimmedUsername];
-    if (!existingUser || !existingUser.character) {
+    const found = findUserByUsername(username);
+    if (!found) return false;
+    const { username: resolvedUsername, user: existingUser } = found;
+    if (!existingUser.character) {
       return false;
     }
 
@@ -568,16 +464,27 @@ export default function App() {
       totalScore: calculateTotalScore(updatedScores),
     };
 
-    const updatedUsers = {
-      ...users,
-      [trimmedUsername]: {
-        ...existingUser,
-        character: updatedCharacter,
-      },
+    const updatedUser: User = {
+      ...existingUser,
+      character: updatedCharacter,
     };
 
-    saveUsers(updatedUsers);
-    return true;
+    setUsers((prev) => ({
+      ...prev,
+      [resolvedUsername]: updatedUser,
+    }));
+
+    try {
+      await persistUser(updatedUser);
+      return true;
+    } catch (error) {
+      console.error("점수 업데이트 실패:", error);
+      setUsers((prev) => ({
+        ...prev,
+        [resolvedUsername]: existingUser,
+      }));
+      return false;
+    }
   };
 
   const handleLogout = () => {
@@ -597,6 +504,14 @@ export default function App() {
       }))
       .sort((a, b) => b.totalScore - a.totalScore);
   };
+
+  if (!hasLoadedUsers) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950 text-white">
+        데이터를 불러오는 중입니다…
+      </div>
+    );
+  }
 
   if (currentPage === "login") {
     return (
@@ -662,7 +577,6 @@ export default function App() {
         currentUsername={currentUser}
         allCharacters={getAllCharacters()}
         onNavigateToAccount={() => navigate("account")}
-        onNavigateToScoreEntry={() => navigate("score")}
         onLogout={handleLogout}
       />
     );
