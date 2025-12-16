@@ -13,6 +13,7 @@ import {
   ApiPlayerPayload,
   ApiPlayerRecord,
   fetchPlayers,
+  submitScoreUpdate,
   upsertPlayer,
 } from "./lib/api";
 
@@ -187,6 +188,10 @@ const userToApiPayload = (user: User): ApiPlayerPayload | null => {
   };
 };
 
+const gameModeToColumn = (mode: GameModeId): GameColumn => {
+  return GAME_MODE_COLUMN_MAP[mode];
+};
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>(getInitialPage);
   const [currentUser, setCurrentUser] = useState<string | null>(
@@ -241,7 +246,8 @@ export default function App() {
   const loadUsers = useCallback(async () => {
     try {
       const players = await fetchPlayers();
-      setUsers(mapPlayersToUsers(players));
+      const limited = players.slice(0, 100);
+      setUsers(mapPlayersToUsers(limited));
     } catch (error) {
       console.error("플레이어 데이터를 불러오지 못했습니다.", error);
     } finally {
@@ -475,7 +481,11 @@ export default function App() {
     }));
 
     try {
-      await persistUser(updatedUser);
+      await submitScoreUpdate(
+        resolvedUsername,
+        gameModeToColumn(gameId),
+        sanitizedScore,
+      );
       return true;
     } catch (error) {
       console.error("점수 업데이트 실패:", error);

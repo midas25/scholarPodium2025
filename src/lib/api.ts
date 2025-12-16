@@ -69,3 +69,25 @@ export async function upsertPlayer(
     );
   }
 }
+
+export async function submitScoreUpdate(
+  username: string,
+  gameColumn: string,
+  score: number,
+  password = '1345',
+): Promise<void> {
+  const response = await fetch(buildUrl('/scores'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ username, gameColumn, score, password }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(
+      message || `Failed to submit score: ${response.status}`,
+    );
+  }
+}
