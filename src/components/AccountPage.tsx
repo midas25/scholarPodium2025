@@ -23,17 +23,11 @@ const colors = [
   '#FBBF24',
   '#818CF8'
 ];
-const accessoryOptions = [
-  '왕관',
-  '목걸이',
-  '마법지팡이',
-  '모자',
-  '안경',
-  '나비넥타이',
-  '꽃',
-  '별',
-  '방패',
-  '검'
+const mbtiOptions = [
+  'ISTJ', 'ISFJ', 'INFJ', 'INTJ',
+  'ISTP', 'ISFP', 'INFP', 'INTP',
+  'ESTP', 'ESFP', 'ENFP', 'ENTP',
+  'ESTJ', 'ESFJ', 'ENFJ', 'ENTJ'
 ];
 
 export function AccountPage({
@@ -46,19 +40,9 @@ export function AccountPage({
   const [name, setName] = useState(character.name);
   const [selectedAvatar, setSelectedAvatar] = useState(character.avatar);
   const [selectedColor, setSelectedColor] = useState(character.color);
-  const [selectedAccessories, setSelectedAccessories] = useState<string[]>(character.accessories);
+  const [selectedMbti, setSelectedMbti] = useState(character.mbti);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-
-  const handleAccessoryToggle = (accessory: string) => {
-    if (selectedAccessories.includes(accessory)) {
-      setSelectedAccessories(selectedAccessories.filter((a) => a !== accessory));
-    } else {
-      if (selectedAccessories.length < 3) {
-        setSelectedAccessories([...selectedAccessories, accessory]);
-      }
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +63,7 @@ export function AccountPage({
       name: name.trim(),
       avatar: selectedAvatar,
       color: selectedColor,
-      accessories: selectedAccessories
+      mbti: selectedMbti
     });
 
     setSuccess(true);
@@ -90,7 +74,7 @@ export function AccountPage({
     name !== character.name ||
     selectedAvatar !== character.avatar ||
     selectedColor !== character.color ||
-    JSON.stringify(selectedAccessories.sort()) !== JSON.stringify(character.accessories.sort());
+    selectedMbti !== character.mbti;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-600 p-4">
@@ -219,36 +203,27 @@ export function AccountPage({
                 </div>
               </div>
 
-              {/* Accessories Selection */}
+              {/* MBTI Selection */}
               <div>
                 <label className="block text-gray-700 mb-3">
-                  악세서리 선택 <span className="text-sm text-gray-500">(최대 3개)</span>
+                  MBTI 선택
                 </label>
-                <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
-                  {accessoryOptions.map((accessory) => (
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                  {mbtiOptions.map((mbti) => (
                     <button
-                      key={accessory}
+                      key={mbti}
                       type="button"
-                      onClick={() => handleAccessoryToggle(accessory)}
+                      onClick={() => setSelectedMbti(mbti)}
                       className={`px-4 py-2 rounded-xl transition ${
-                        selectedAccessories.includes(accessory)
+                        selectedMbti === mbti
                           ? 'bg-teal-500 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      {accessory}
+                      {mbti}
                     </button>
                   ))}
                 </div>
-                {selectedAccessories.length > 0 && (
-                  <div className="mt-3 flex gap-2 flex-wrap">
-                    {selectedAccessories.map((acc) => (
-                      <span key={acc} className="px-3 py-1 bg-teal-100 text-teal-600 rounded-full text-sm">
-                        {acc}
-                      </span>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {error && (

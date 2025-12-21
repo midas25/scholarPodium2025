@@ -11,7 +11,7 @@ export type ApiPlayerRecord = {
   name: string;
   avatar: string;
   color: string;
-  accessories?: string[];
+  mbti?: string;
   createdAt?: number;
   totalScore?: number;
   game1?: number;
@@ -26,7 +26,7 @@ export type ApiPlayerPayload = {
   name: string;
   avatar: string;
   color: string;
-  accessories: string[];
+  mbti: string;
   createdAt: number;
   game1: number;
   game2: number;

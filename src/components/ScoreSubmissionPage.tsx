@@ -305,7 +305,10 @@ export function ScoreSubmissionPage({
                     <tr key={player.id} className="border-t border-gray-100">
                       <td className="px-4 py-3 font-semibold text-gray-700">#{index + 1}</td>
                       <td className="px-4 py-3">
-                        <div className="font-semibold">{player.name}</div>
+                        <div className="font-semibold">
+                          {player.name}
+                          <span className="text-gray-500"> ({player.mbti})</span>
+                        </div>
                         <div className="text-xs text-gray-500">@{player.username}</div>
                       </td>
                       <td className="px-4 py-3 text-right font-semibold">

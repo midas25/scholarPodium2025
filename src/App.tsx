@@ -30,7 +30,7 @@ export type CharacterAppearance = {
   name: string;
   avatar: string;
   color: string;
-  accessories: string[];
+  mbti: string;
 };
 
 export type Character = {
@@ -136,9 +136,7 @@ const convertApiPlayerToUser = (player: ApiPlayerRecord): User => {
     name: player.name ?? player.username,
     avatar: player.avatar ?? "🎮",
     color: player.color ?? "#FF6B35",
-    accessories: Array.isArray(player.accessories)
-      ? player.accessories
-      : [],
+    mbti: typeof player.mbti === "string" ? player.mbti : "INFP",
     createdAt:
       typeof player.createdAt === "number"
         ? player.createdAt
@@ -182,7 +180,7 @@ const userToApiPayload = (user: User): ApiPlayerPayload | null => {
     name: user.character.name,
     avatar: user.character.avatar,
     color: user.character.color,
-    accessories: user.character.accessories,
+    mbti: user.character.mbti,
     createdAt: user.character.createdAt,
     ...scoresByColumn,
   };

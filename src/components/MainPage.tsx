@@ -178,7 +178,10 @@ export function MainPage({
                   {/* Character Info */}
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-gray-900">{character.name}</h3>
+                      <h3 className="text-gray-900">
+                        {character.name}
+                        <span className="text-gray-500"> ({character.mbti})</span>
+                      </h3>
                       {isCurrentUser && (
                         <span className="px-2 py-1 bg-purple-500 text-white rounded-full text-xs">
                           나
@@ -187,18 +190,6 @@ export function MainPage({
                     </div>
                     <div className="flex items-center gap-3 text-sm text-gray-600">
                       <span>@{character.username}</span>
-                      {character.accessories.length > 0 && (
-                        <span className="flex gap-1">
-                          {character.accessories.map((acc, i) => (
-                            <span
-                              key={i}
-                              className="px-2 py-0.5 bg-gray-100 rounded-full text-xs"
-                            >
-                              {acc}
-                            </span>
-                          ))}
-                        </span>
-                      )}
                     </div>
                   </div>
 
