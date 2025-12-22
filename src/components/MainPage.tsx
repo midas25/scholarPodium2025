@@ -56,7 +56,7 @@ export function MainPage({
           <div className="flex items-center gap-3">
             <div className="text-4xl">🎪</div>
             <div>
-              <h1 className="text-white">축제 대기줄 랭킹</h1>
+              <h1 className="text-white">✨🎮👾HAF-SUPER MARIO👾🎮✨</h1>
               <p className="text-white/80 text-sm">실시간 플레이어 순위</p>
             </div>
           </div>
