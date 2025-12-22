@@ -19,6 +19,12 @@ export function MainPage({
   onLogout
 }: MainPageProps) {
   const [activeGame, setActiveGame] = useState<GameModeId>(GAME_MODES[0].id);
+  const displayGameLabel = (label: string) => {
+    if (label === 'game1') return 'game1(배틀로봇)';
+    if (label === 'game2') return 'game2(카트)';
+    if (label === 'game3') return 'game3(카드게임)';
+    return label;
+  };
 
   const gameLeaderboard = useMemo(
     () => [...allCharacters].sort((a, b) => (b.gameScores[activeGame] ?? 0) - (a.gameScores[activeGame] ?? 0)),
@@ -105,7 +111,7 @@ export function MainPage({
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                 {GAME_MODES.map((mode) => (
                   <div key={mode.id} className="bg-gray-100 rounded-2xl p-3 text-center">
-                    <div className="text-xs text-gray-500">{mode.label}</div>
+                    <div className="text-xs text-gray-500">{displayGameLabel(mode.label)}</div>
                     <div className="text-base font-semibold text-gray-900">
                       {currentCharacter.gameScores[mode.id]?.toLocaleString() ?? 0}
                     </div>
@@ -121,7 +127,7 @@ export function MainPage({
           <div className="bg-gradient-to-r from-purple-600 to-pink-500 p-6">
             <h2 className="text-white flex items-center gap-2">
               <Trophy className="w-6 h-6" />
-              {activeMode ? `${activeMode.label} 랭킹` : '전체 랭킹'}
+              {activeMode ? `${displayGameLabel(activeMode.label)} 랭킹` : '전체 랭킹'}
             </h2>
           </div>
           <div className="flex flex-wrap gap-2 p-4 border-b border-gray-100 bg-gray-50">
@@ -137,7 +143,7 @@ export function MainPage({
                       : 'bg-white text-gray-600 border border-transparent hover:bg-gray-100'
                   }`}
                 >
-                  {mode.label}
+                  {displayGameLabel(mode.label)}
                 </button>
               );
             })}
