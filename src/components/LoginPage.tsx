@@ -40,7 +40,7 @@ export function LoginPage({ onLogin, onSignup }: LoginPageProps) {
       <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-6xl mb-4">🎪</div>
-          <h1 className="text-purple-600 mb-2">✨🎮👾HAF-SUPER MARIO👾🎮✨</h1>
+          <h1 className="text-purple-600 mb-2">✨🎮HAF-SUPER MARIO🎮✨</h1>
           <p className="text-gray-600">나만의 캐릭터로 랭킹에 도전하세요!</p>
         </div>
 
