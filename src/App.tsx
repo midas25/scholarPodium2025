@@ -16,6 +16,7 @@ import {
   submitScoreUpdate,
   upsertPlayer,
 } from "./lib/api";
+import { DEFAULT_AVATAR } from "./assets/avatars";
 
 export const GAME_MODES = [
   { id: "dance", label: "game1" },
@@ -36,7 +37,6 @@ export type CharacterAppearance = {
 export type Character = {
   id: string;
   createdAt: number;
-  totalScore: number;
   gameScores: Record<GameModeId, number>;
 } & CharacterAppearance;
 
@@ -64,10 +64,6 @@ const GAME_MODE_COLUMN_MAP: Record<GameModeId, GameColumn> = {
   puzzle: "game3",
   raid: "game4",
 };
-
-const calculateTotalScore = (
-  scores: Record<GameModeId, number>,
-) => Object.values(scores).reduce((sum, value) => sum + value, 0);
 
 const createEmptyGameScores = (): Record<GameModeId, number> => {
   return GAME_MODES.reduce(
@@ -126,15 +122,10 @@ const buildGameScoresFromRecord = (
 
 const convertApiPlayerToUser = (player: ApiPlayerRecord): User => {
   const gameScores = buildGameScoresFromRecord(player);
-  const totalScore =
-    typeof player.totalScore === "number"
-      ? player.totalScore
-      : calculateTotalScore(gameScores);
-
   const character: Character = {
     id: player.id ? String(player.id) : player.username,
     name: player.name ?? player.username,
-    avatar: player.avatar ?? "🎮",
+    avatar: player.avatar ?? DEFAULT_AVATAR,
     color: player.color ?? "#FF6B35",
     mbti: typeof player.mbti === "string" ? player.mbti : "INFP",
     createdAt:
@@ -142,7 +133,6 @@ const convertApiPlayerToUser = (player: ApiPlayerRecord): User => {
         ? player.createdAt
         : Date.now(),
     gameScores,
-    totalScore,
   };
 
   return {
@@ -393,12 +383,8 @@ export default function App() {
       ...character,
       id: Date.now().toString(),
       gameScores: createEmptyGameScores(),
-      totalScore: 0,
       createdAt: Date.now(),
     };
-    newCharacter.totalScore = calculateTotalScore(
-      newCharacter.gameScores,
-    );
 
     const existingUser = users[currentUser];
     const updatedUser: User = {
@@ -466,7 +452,6 @@ export default function App() {
     const updatedCharacter: Character = {
       ...existingUser.character,
       gameScores: updatedScores,
-      totalScore: calculateTotalScore(updatedScores),
     };
 
     const updatedUser: User = {
@@ -511,8 +496,7 @@ export default function App() {
       .map(([username, user]) => ({
         ...user.character!,
         username,
-      }))
-      .sort((a, b) => b.totalScore - a.totalScore);
+      }));
   };
 
   if (!hasLoadedUsers) {

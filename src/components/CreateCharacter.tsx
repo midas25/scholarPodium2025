@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Sparkles, ArrowLeft } from 'lucide-react';
 import { CharacterAppearance } from '../App';
+import { AVATAR_IMAGES } from '../assets/avatars';
+import { AvatarVisual } from './AvatarVisual';
 
 type CreateCharacterProps = {
   onCreateCharacter: (character: CharacterAppearance) => void;
   onBack: () => void;
 };
 
-const avatars = ['🐯', '🐉', '🐰', '🦊', '🐼', '🐨', '🦁', '🐸', '🐵', '🐺', '🦄', '🐷'];
+const avatars = AVATAR_IMAGES;
 const colors = [
   '#FF6B35',
   '#4ECDC4',
@@ -80,10 +82,15 @@ export function CreateCharacter({ onCreateCharacter, onBack }: CreateCharacterPr
             {/* Character Preview */}
             <div className="flex justify-center">
               <div
-                className="w-32 h-32 rounded-3xl flex items-center justify-center text-6xl shadow-2xl transform hover:scale-105 transition"
+                className="w-32 h-32 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition"
                 style={{ backgroundColor: selectedColor }}
               >
-                {selectedAvatar}
+                <AvatarVisual
+                  value={selectedAvatar}
+                  alt={`${name || '선택한'} 아바타`}
+                  imgClassName="w-24 h-24 object-contain"
+                  textClassName="text-6xl"
+                />
               </div>
             </div>
 
@@ -109,13 +116,18 @@ export function CreateCharacter({ onCreateCharacter, onBack }: CreateCharacterPr
                     key={avatar}
                     type="button"
                     onClick={() => setSelectedAvatar(avatar)}
-                    className={`aspect-square rounded-xl text-3xl flex items-center justify-center transition transform hover:scale-110 ${
+                    className={`aspect-square rounded-xl flex items-center justify-center transition transform hover:scale-110 ${
                       selectedAvatar === avatar
                         ? 'bg-purple-100 ring-4 ring-purple-500 scale-110'
                         : 'bg-gray-100 hover:bg-gray-200'
                     }`}
                   >
-                    {avatar}
+                    <AvatarVisual
+                      value={avatar}
+                      alt="아바타 선택"
+                      imgClassName="w-10 h-10 object-contain"
+                      textClassName="text-3xl"
+                    />
                   </button>
                 ))}
               </div>

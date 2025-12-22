@@ -13,7 +13,6 @@ export type ApiPlayerRecord = {
   color: string;
   mbti?: string;
   createdAt?: number;
-  totalScore?: number;
   game1?: number;
   game2?: number;
   game3?: number;

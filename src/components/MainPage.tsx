@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Trophy, Medal, Crown, Settings, LogOut } from 'lucide-react';
 import { Character, GAME_MODES, GameModeId } from '../App';
+import { AvatarVisual } from './AvatarVisual';
 
 type MainPageProps = {
   currentCharacter: Character;
@@ -19,17 +20,12 @@ export function MainPage({
 }: MainPageProps) {
   const [activeGame, setActiveGame] = useState<GameModeId>(GAME_MODES[0].id);
 
-  const totalLeaderboard = useMemo(
-    () => [...allCharacters].sort((a, b) => b.totalScore - a.totalScore),
-    [allCharacters]
-  );
-
   const gameLeaderboard = useMemo(
     () => [...allCharacters].sort((a, b) => (b.gameScores[activeGame] ?? 0) - (a.gameScores[activeGame] ?? 0)),
     [allCharacters, activeGame]
   );
 
-  const currentRank = totalLeaderboard.findIndex((c) => c.username === currentUsername) + 1;
+  const currentRank = gameLeaderboard.findIndex((c) => c.username === currentUsername) + 1;
   const activeMode = GAME_MODES.find((mode) => mode.id === activeGame);
 
   const getRankIcon = (rank: number) => {
@@ -82,10 +78,15 @@ export function MainPage({
         <div className="bg-white rounded-3xl shadow-2xl p-6 mb-6">
           <div className="flex items-center gap-4">
             <div
-              className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl shadow-lg"
+              className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg"
               style={{ backgroundColor: currentCharacter.color }}
             >
-              {currentCharacter.avatar}
+              <AvatarVisual
+                value={currentCharacter.avatar}
+                alt={`${currentCharacter.name} 아바타`}
+                imgClassName="w-14 h-14 object-contain"
+                textClassName="text-4xl"
+              />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
@@ -99,10 +100,7 @@ export function MainPage({
                   {getRankIcon(currentRank)}
                   <span className="text-gray-700">#{currentRank} 순위</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <span className="text-gray-900">{currentCharacter.totalScore.toLocaleString()} 점</span>
-                </div>
+                <div className="flex items-center gap-1" />
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                 {GAME_MODES.map((mode) => (
@@ -169,10 +167,15 @@ export function MainPage({
 
                   {/* Character Avatar */}
                   <div
-                    className="w-16 h-16 rounded-xl flex items-center justify-center text-3xl shadow-md"
+                    className="w-16 h-16 rounded-xl flex items-center justify-center shadow-md"
                     style={{ backgroundColor: character.color }}
                   >
-                    {character.avatar}
+                    <AvatarVisual
+                      value={character.avatar}
+                      alt={`${character.name} 아바타`}
+                      imgClassName="w-12 h-12 object-contain"
+                      textClassName="text-3xl"
+                    />
                   </div>
 
                   {/* Character Info */}
@@ -198,9 +201,6 @@ export function MainPage({
                     {getRankIcon(rank)}
                     <div className="text-right">
                       <span className="text-gray-900 block">{gameScore.toLocaleString()}</span>
-                      <span className="text-xs text-gray-500">
-                        총점 {character.totalScore.toLocaleString()}
-                      </span>
                     </div>
                   </div>
                 </div>

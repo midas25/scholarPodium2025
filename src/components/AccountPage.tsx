@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, User, Sparkles } from 'lucide-react';
 import { Character, CharacterAppearance, GAME_MODES } from '../App';
+import { AVATAR_IMAGES } from '../assets/avatars';
+import { AvatarVisual } from './AvatarVisual';
 
 type AccountPageProps = {
   character: Character;
@@ -10,7 +12,7 @@ type AccountPageProps = {
   onLogout: () => void;
 };
 
-const avatars = ['🐯', '🐉', '🐰', '🦊', '🐼', '🐨', '🦁', '🐸', '🐵', '🐺', '🦄', '🐷'];
+const avatars = AVATAR_IMAGES;
 const colors = [
   '#FF6B35',
   '#4ECDC4',
@@ -105,11 +107,7 @@ export function AccountPage({
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl p-4 text-center">
-              <div className="text-purple-600 mb-1">현재 점수</div>
-              <div className="text-purple-900 text-2xl">{character.totalScore.toLocaleString()}</div>
-            </div>
+          <div className="grid grid-cols-1 gap-4 mb-8">
             <div className="bg-gradient-to-br from-blue-100 to-cyan-100 rounded-2xl p-4 text-center">
               <div className="text-blue-600 mb-1">가입일</div>
               <div className="text-blue-900 text-sm">
@@ -142,12 +140,17 @@ export function AccountPage({
               {/* Character Preview */}
               <div className="flex justify-center">
                 <div
-                  className="w-32 h-32 rounded-3xl flex items-center justify-center text-6xl shadow-2xl transform hover:scale-105 transition"
-                  style={{ backgroundColor: selectedColor }}
-                >
-                  {selectedAvatar}
-                </div>
+                className="w-32 h-32 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition"
+                style={{ backgroundColor: selectedColor }}
+              >
+                <AvatarVisual
+                  value={selectedAvatar}
+                  alt={`${name || '선택한'} 아바타`}
+                  imgClassName="w-24 h-24 object-contain"
+                  textClassName="text-6xl"
+                />
               </div>
+            </div>
 
               {/* Character Name */}
               <div>
@@ -171,17 +174,22 @@ export function AccountPage({
                       key={avatar}
                       type="button"
                       onClick={() => setSelectedAvatar(avatar)}
-                      className={`aspect-square rounded-xl text-3xl flex items-center justify-center transition transform hover:scale-110 ${
-                        selectedAvatar === avatar
-                          ? 'bg-teal-100 ring-4 ring-teal-500 scale-110'
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
-                    >
-                      {avatar}
-                    </button>
-                  ))}
-                </div>
+                    className={`aspect-square rounded-xl flex items-center justify-center transition transform hover:scale-110 ${
+                      selectedAvatar === avatar
+                        ? 'bg-teal-100 ring-4 ring-teal-500 scale-110'
+                        : 'bg-gray-100 hover:bg-gray-200'
+                    }`}
+                  >
+                    <AvatarVisual
+                      value={avatar}
+                      alt="아바타 선택"
+                      imgClassName="w-10 h-10 object-contain"
+                      textClassName="text-3xl"
+                    />
+                  </button>
+                ))}
               </div>
+            </div>
 
               {/* Color Selection */}
               <div>
