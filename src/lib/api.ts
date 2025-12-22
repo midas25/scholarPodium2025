@@ -74,7 +74,7 @@ export async function submitScoreUpdate(
   username: string,
   gameColumn: string,
   score: number,
-  password = '1345',
+  password: string,
 ): Promise<void> {
   const response = await fetch(buildUrl('/scores'), {
     method: 'POST',

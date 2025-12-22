@@ -447,6 +447,7 @@ export default function App() {
     username: string,
     gameId: GameModeId,
     score: number,
+    accessCode: string,
   ): Promise<boolean> => {
     if (!Number.isFinite(score) || score < 0) return false;
     const found = findUserByUsername(username);
@@ -483,6 +484,7 @@ export default function App() {
         resolvedUsername,
         gameModeToColumn(gameId),
         sanitizedScore,
+        accessCode,
       );
       return true;
     } catch (error) {

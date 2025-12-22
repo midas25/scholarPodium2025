@@ -7,7 +7,8 @@ type ScoreSubmissionPageProps = {
   onSubmitScore: (
     username: string,
     gameId: GameModeId,
-    score: number
+    score: number,
+    accessCode: string
   ) => Promise<boolean>;
   onBack: () => void;
 };
@@ -30,7 +31,7 @@ export function ScoreSubmissionPage({
   const [accessCode, setAccessCode] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
 
-  const pageAccessCode = import.meta.env.VITE_SCORE_PAGE_PASSWORD || '1234';
+  const pageAccessCode = import.meta.env.VITE_SCORE_PAGE_PASSWORD || '1345';
 
   const usernameExists = useMemo(() => {
     const trimmed = username.trim().toLowerCase();
@@ -80,7 +81,12 @@ export function ScoreSubmissionPage({
     setStatus({ message: '점수를 등록하는 중입니다…', type: null });
 
     try {
-      const success = await onSubmitScore(username, selectedGame, numericScore);
+      const success = await onSubmitScore(
+        username,
+        selectedGame,
+        numericScore,
+        accessCode
+      );
       if (!success) {
         setStatus({
           message: '점수 등록에 실패했습니다. 닉네임을 확인해주세요.',

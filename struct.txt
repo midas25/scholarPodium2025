@@ -1,0 +1,31 @@
+워커스 API
+- Base URL: VITE_API_BASE_URL (기본: https://broad-bad-9cd25.rtioalb2250.workers.dev)
+- CORS: Origin *, Methods GET,POST,OPTIONS, Headers Content-Type 허용
+- 엔드포인트
+  - GET /players
+    - total_score 내림차순 플레이어 목록 반환
+    - 필드: id, username, password, name, avatar, color, mbti, createdAt, totalScore, game1, game2, game3, game4
+  - POST /players
+    - Body: { username, password, name, avatar, color, mbti, createdAt?, game1?, game2?, game3?, game4? }
+    - username 기준 업서트, total_score 재계산
+  - POST /scores
+    - Body: { username, gameColumn, score, password }
+    - gameColumn: "game1" | "game2" | "game3" | "game4"
+    - 동작: 비밀번호 검증, score가 기존 점수보다 클 때만 업데이트
+
+데이터베이스 (D1)
+- 테이블: players
+- 컬럼
+  - id (기본키, D1 스키마에 따라 integer 또는 text)
+  - username (unique)
+  - password
+  - name
+  - avatar
+  - color
+  - mbti
+  - created_at (number)
+  - total_score (number)
+  - game1 (number)
+  - game2 (number)
+  - game3 (number)
+  - game4 (number)
