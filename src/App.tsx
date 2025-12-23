@@ -188,7 +188,7 @@ export default function App() {
   const [users, setUsers] = useState<Record<string, User>>({});
   const [hasLoadedUsers, setHasLoadedUsers] = useState(false);
   const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] =
-    useState(true);
+    useState(false);
   const hasNormalizedPath = useRef(false);
   const hasRestoredSession = useRef(false);
 
