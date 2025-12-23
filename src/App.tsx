@@ -234,8 +234,7 @@ export default function App() {
   const loadUsers = useCallback(async () => {
     try {
       const players = await fetchPlayers();
-      const limited = players.slice(0, 100);
-      setUsers(mapPlayersToUsers(limited));
+      setUsers(mapPlayersToUsers(players));
     } catch (error) {
       console.error("플레이어 데이터를 불러오지 못했습니다.", error);
     } finally {
