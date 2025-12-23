@@ -283,6 +283,17 @@ export default function App() {
   }, [loadUsers]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (currentPage !== "home") return;
+
+    const intervalId = window.setInterval(() => {
+      loadUsers();
+    }, 60000);
+
+    return () => window.clearInterval(intervalId);
+  }, [currentPage, loadUsers]);
+
+  useEffect(() => {
     if (hasNormalizedPath.current) return;
     updateHistoryPath(currentPage, "replaceState");
     hasNormalizedPath.current = true;
