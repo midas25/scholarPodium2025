@@ -187,6 +187,8 @@ export default function App() {
   );
   const [users, setUsers] = useState<Record<string, User>>({});
   const [hasLoadedUsers, setHasLoadedUsers] = useState(false);
+  const [isAutoRefreshEnabled, setIsAutoRefreshEnabled] =
+    useState(true);
   const hasNormalizedPath = useRef(false);
   const hasRestoredSession = useRef(false);
 
@@ -285,13 +287,14 @@ export default function App() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (currentPage !== "home") return;
+    if (!isAutoRefreshEnabled) return;
 
     const intervalId = window.setInterval(() => {
       loadUsers();
     }, 60000);
 
     return () => window.clearInterval(intervalId);
-  }, [currentPage, loadUsers]);
+  }, [currentPage, isAutoRefreshEnabled, loadUsers]);
 
   useEffect(() => {
     if (hasNormalizedPath.current) return;
@@ -576,13 +579,18 @@ export default function App() {
     users[currentUser].character
   ) {
     return (
-      <MainPage
-        currentCharacter={users[currentUser].character!}
-        currentUsername={currentUser}
-        allCharacters={getAllCharacters()}
-        onNavigateToAccount={() => navigate("account")}
-        onLogout={handleLogout}
-      />
+        <MainPage
+          currentCharacter={users[currentUser].character!}
+          currentUsername={currentUser}
+          allCharacters={getAllCharacters()}
+          onNavigateToAccount={() => navigate("account")}
+          onRefreshRanking={loadUsers}
+          onLogout={handleLogout}
+          isAutoRefreshEnabled={isAutoRefreshEnabled}
+          onToggleAutoRefresh={() =>
+            setIsAutoRefreshEnabled((prev) => !prev)
+          }
+        />
     );
   }
 

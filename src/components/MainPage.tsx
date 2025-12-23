@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Trophy, Medal, Crown, Settings, LogOut } from 'lucide-react';
+import { Trophy, Medal, Crown, Settings, LogOut, RefreshCw } from 'lucide-react';
 import { Character, GAME_MODES, GameModeId } from '../App';
 import { AvatarVisual } from './AvatarVisual';
 
@@ -9,6 +9,9 @@ type MainPageProps = {
   allCharacters: (Character & { username: string })[];
   onNavigateToAccount: () => void;
   onLogout: () => void;
+  onRefreshRanking: () => void;
+  isAutoRefreshEnabled: boolean;
+  onToggleAutoRefresh: () => void;
 };
 
 export function MainPage({
@@ -16,7 +19,10 @@ export function MainPage({
   currentUsername,
   allCharacters,
   onNavigateToAccount,
-  onLogout
+  onLogout,
+  onRefreshRanking,
+  isAutoRefreshEnabled,
+  onToggleAutoRefresh
 }: MainPageProps) {
   const [activeGame, setActiveGame] = useState<GameModeId>(GAME_MODES[0].id);
   const displayGameLabel = (label: string) => {
@@ -61,6 +67,24 @@ export function MainPage({
             </div>
           </div>
           <div className="flex gap-2">
+            <button
+              onClick={onToggleAutoRefresh}
+              className={`px-3 py-2 rounded-xl text-sm transition ${
+                isAutoRefreshEnabled
+                  ? 'bg-green-500/20 text-white hover:bg-green-500/30'
+                  : 'bg-white/20 text-white hover:bg-white/30'
+              }`}
+              title="자동 새로고침"
+            >
+              자동 {isAutoRefreshEnabled ? 'ON' : 'OFF'}
+            </button>
+            <button
+              onClick={onRefreshRanking}
+              className="p-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition"
+              title="랭킹 새로고침"
+            >
+              <RefreshCw className="w-5 h-5" />
+            </button>
             <button
               onClick={onNavigateToAccount}
               className="p-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition"
